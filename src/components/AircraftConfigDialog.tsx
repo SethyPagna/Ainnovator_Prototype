@@ -123,7 +123,6 @@ export function AircraftConfigDialog({
                     {AIRCRAFT_TYPES[selectedModel].maxPayloadWeight.toLocaleString()}kg
                   </div>
                 </div>
-
                 <div className="bg-[rgba(0,0,0,0.3)] rounded-lg p-3">
                   <div className="text-[#005D63] text-xs mb-1">ULD CAPACITY</div>
                   <div className="text-white font-bold">
