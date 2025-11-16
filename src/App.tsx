@@ -172,6 +172,7 @@ export default function App() {
   const [aircraftConfig, setAircraftConfig] = useState<AircraftConfig>(AIRCRAFT_TYPES['B777F']);
   const [aircraftConfigOpen, setAircraftConfigOpen] = useState(false);
   const [selectedULDForPlacement, setSelectedULDForPlacement] = useState<string | null>(null); // ULD selected for manual placement
+  const [placementHistory, setPlacementHistory] = useState<Array<{ ulds: ULDContainer[]; action: string }>>([]);
 
   const activeULD = ulds.find(u => u.id === activeULDId);
 
@@ -661,6 +662,15 @@ export default function App() {
 
   // Manual ULD placement handler
   const handleManualULDPlacement = (uldId: string, position: { x: number; y: number; z: number }) => {
+    // Save current state to history before making changes
+    const currentULD = ulds.find(u => u.id === uldId);
+    if (currentULD) {
+      setPlacementHistory(prev => [...prev, {
+        ulds: JSON.parse(JSON.stringify(ulds)), // Deep copy
+        action: `Placed ${currentULD.name}`
+      }]);
+    }
+    
     setUlds(prev => prev.map(u => {
       if (u.id === uldId) {
         return {
@@ -673,6 +683,19 @@ export default function App() {
     }));
     setSelectedULDForPlacement(null);
     toast.success('ULD placed manually');
+  };
+
+  // Undo last placement
+  const handleUndoPlacement = () => {
+    if (placementHistory.length === 0) {
+      toast.error('No actions to undo');
+      return;
+    }
+    
+    const lastState = placementHistory[placementHistory.length - 1];
+    setUlds(lastState.ulds);
+    setPlacementHistory(prev => prev.slice(0, -1));
+    toast.success(`Undone: ${lastState.action}`);
   };
 
   const completedULDs = ulds.filter(u => u.status === 'completed' || u.status === 'loaded');
@@ -881,9 +904,33 @@ export default function App() {
             <div className="grid grid-cols-[420px_1fr] gap-6 h-full">
               {/* Left Panel */}
               <div className="space-y-4">
-                <button onClick={handleOptimizeHold} disabled={isOptimizing || completedULDs.length === 0} className="w-full bg-gradient-to-r from-[#005D63] to-[#004852] text-white py-3 rounded-lg hover:opacity-90 disabled:opacity-50 shadow-lg" style={{ textShadow: '0 0 10px rgba(255, 255, 255, 0.5)' }}>
-                  {isOptimizing ? 'Optimizing...' : 'AI Optimize Hold Layout'}
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={handleOptimizeHold} 
+                    disabled={isOptimizing || completedULDs.length === 0} 
+                    className="flex-1 bg-gradient-to-r from-[#005D63] to-[#004852] text-white py-3 rounded-lg hover:opacity-90 disabled:opacity-50 shadow-lg" 
+                    style={{ textShadow: '0 0 10px rgba(255, 255, 255, 0.5)' }}
+                  >
+                    {isOptimizing ? 'Optimizing...' : 'AI Optimize Hold Layout'}
+                  </button>
+                  <button
+                    onClick={handleUndoPlacement}
+                    disabled={placementHistory.length === 0}
+                    className="bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg shadow-lg transition-all flex items-center gap-2"
+                    title="Undo last placement"
+                  >
+                    <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                    <span className="font-bold">Undo</span>
+                  </button>
+                </div>
+
+                {placementHistory.length > 0 && (
+                  <div className="bg-orange-100 border border-orange-400 rounded-lg p-2 text-xs text-orange-900">
+                    💾 {placementHistory.length} action{placementHistory.length > 1 ? 's' : ''} in history
+                  </div>
+                )}
 
                 <div className="bg-[rgba(255,255,255,0.5)] rounded-lg p-4 space-y-2 border border-[rgba(255,255,255,0.2)]">
                   <h3 className="text-[#0f172b] font-bold flex items-center gap-2">
@@ -938,6 +985,8 @@ export default function App() {
                   ulds={ulds} 
                   aircraftConfig={aircraftConfig}
                   onConfigureAircraft={() => setAircraftConfigOpen(true)}
+                  selectedULDForPlacement={selectedULDForPlacement}
+                  onManualPlace={handleManualULDPlacement}
                 />
               </div>
             </div>

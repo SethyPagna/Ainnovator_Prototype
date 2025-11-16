@@ -10,9 +10,19 @@ interface AircraftHoldView3DProps {
   onULDClick?: (uld: ULDContainer) => void;
   onConfigureAircraft?: () => void;
   onULDMove?: (uldId: string, newPosition: { x: number; y: number; z: number }) => void;
+  selectedULDForPlacement?: string | null;
+  onManualPlace?: (uldId: string, position: { x: number; y: number; z: number }) => void;
 }
 
-export function AircraftHoldView3D({ ulds, aircraftConfig, onULDClick, onConfigureAircraft, onULDMove }: AircraftHoldView3DProps) {
+export function AircraftHoldView3D({ 
+  ulds, 
+  aircraftConfig, 
+  onULDClick, 
+  onConfigureAircraft, 
+  onULDMove,
+  selectedULDForPlacement,
+  onManualPlace 
+}: AircraftHoldView3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [rotation, setRotation] = useState({ x: -25, y: 35 });
@@ -841,12 +851,70 @@ export function AircraftHoldView3D({ ulds, aircraftConfig, onULDClick, onConfigu
   };
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // If a ULD is selected for placement, place it at click location
+    if (selectedULDForPlacement && onManualPlace) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // Convert screen coordinates to approximate 3D position
+      // This is a simplified approach - clicking on the floor
+      const position = screenToWorld(mouseX, mouseY, rect.width, rect.height);
+      
+      // Ensure position is within bounds
+      const selectedULD = ulds.find(u => u.id === selectedULDForPlacement);
+      if (!selectedULD) return;
+      
+      const margin = 0.05;
+      const clampedPosition = {
+        x: Math.max(margin, Math.min(holdDimensions.length - selectedULD.dimensions.length - margin, position.x)),
+        y: Math.max(margin, Math.min(holdDimensions.width - selectedULD.dimensions.width - margin, position.y)),
+        z: 0 // Always place on floor initially
+      };
+      
+      onManualPlace(selectedULDForPlacement, clampedPosition);
+      return;
+    }
+    
+    // Otherwise, handle ULD click for info
     if (!onULDClick || !hoveredULD) return;
     
     const uld = ulds.find(u => u.id === hoveredULD);
     if (uld) {
       onULDClick(uld);
     }
+  };
+
+  // Convert screen coordinates to 3D world coordinates (simplified)
+  const screenToWorld = (
+    screenX: number, 
+    screenY: number, 
+    canvasWidth: number, 
+    canvasHeight: number
+  ): { x: number; y: number; z: number } => {
+    // This is an approximation - maps screen click to floor position
+    const centerX = canvasWidth / 2 - canvasWidth * 0.22;
+    const centerY = canvasHeight / 2 - canvasHeight * 0.25;
+    
+    // Inverse transform from screen to world
+    const worldX = ((screenX - centerX) / zoom);
+    const worldZ = -((screenY - centerY) / zoom);
+    
+    // Apply inverse rotation (simplified - only handles basic cases)
+    const cosY = Math.cos((-rotation.y * Math.PI) / 180);
+    const sinY = Math.sin((-rotation.y * Math.PI) / 180);
+    const cosX = Math.cos((-rotation.x * Math.PI) / 180);
+    const sinX = Math.sin((-rotation.x * Math.PI) / 180);
+    
+    // Rough inverse transformation
+    const x = worldX * cosY + holdDimensions.length / 2;
+    const y = worldZ + holdDimensions.width / 2;
+    const z = 0; // Floor level
+    
+    return { x, y, z };
   };
 
   const handleManualModeToggle = () => {
@@ -927,66 +995,30 @@ export function AircraftHoldView3D({ ulds, aircraftConfig, onULDClick, onConfigu
         </button>
       </div>
 
-      {/* ULD hover info */}
-      {hoveredULD && (() => {
-        const uld = ulds.find(u => u.id === hoveredULD);
+      {/* ULD Selected for Placement Indicator */}
+      {selectedULDForPlacement && (() => {
+        const uld = ulds.find(u => u.id === selectedULDForPlacement);
         if (!uld) return null;
-        const utilization = ((uld.currentWeight / uld.maxWeight) * 100).toFixed(1);
-        const hasFragile = uld.packages.some(p => p.fragile);
         
         return (
-          <div className="absolute top-32 right-4 bg-black/85 backdrop-blur-sm rounded-lg p-4 min-w-[250px] border border-[rgba(0,93,99,0.4)]">
+          <div className="absolute top-4 left-4 bg-blue-600/90 backdrop-blur-sm rounded-lg p-4 border border-blue-400 min-w-[280px] animate-pulse">
             <div className="flex items-center gap-2 mb-2">
-              <div className="size-3 bg-[#005D63] rounded-full animate-pulse" />
-              <div className="text-white font-bold">{uld.name}</div>
+              <div className="size-3 bg-blue-300 rounded-full animate-ping" />
+              <div className="text-white font-bold">📦 ULD READY TO PLACE</div>
             </div>
-            <div className="text-white/80 text-xs space-y-1.5">
-              <div className="flex justify-between">
-                <span className="text-white/60">Type:</span>
-                <span>{uld.type}</span>
+            <div className="text-white/90 text-sm space-y-1.5">
+              <div className="font-bold text-lg">{uld.name}</div>
+              <div className="text-xs text-blue-100">
+                {uld.packages.length} packages • {uld.currentWeight}kg
               </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Dimensions:</span>
-                <span>{uld.dimensions.length}×{uld.dimensions.width}×{uld.dimensions.height}m</span>
+              <div className="text-xs text-blue-100">
+                Size: {uld.dimensions.length}×{uld.dimensions.width}×{uld.dimensions.height}m
               </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Packages:</span>
-                <span>{uld.packages.length} items</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Weight:</span>
-                <span>{uld.currentWeight}kg / {uld.maxWeight}kg</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Utilization:</span>
-                <span className={utilization > '90' ? 'text-orange-400' : 'text-green-400'}>
-                  {utilization}%
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Stability:</span>
-                <span className={uld.stability >= 70 ? 'text-green-400' : 'text-red-400'}>
-                  {uld.stability.toFixed(1)}%
-                </span>
-              </div>
-              {uld.position && (
-                <div className="flex justify-between">
-                  <span className="text-white/60">Position:</span>
-                  <span className="text-cyan-400">
-                    ({uld.position.x.toFixed(1)}, {uld.position.y.toFixed(1)}, {uld.position.z.toFixed(1)})
-                  </span>
-                </div>
-              )}
-              {hasFragile && (
-                <div className="flex items-center gap-1 text-yellow-400 mt-2 pt-2 border-t border-white/20">
-                  <span>⚠️</span>
-                  <span>Contains fragile items</span>
-                </div>
-              )}
-              <div className={`mt-2 pt-2 border-t border-white/20 text-center font-bold ${
-                uld.stability >= 70 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {uld.stability >= 70 ? '✓ STABLE' : '⚠ UNSTABLE'}
+            </div>
+            <div className="mt-3 pt-3 border-t border-blue-400/50">
+              <div className="text-white text-xs font-bold mb-1">👆 INSTRUCTIONS:</div>
+              <div className="text-blue-100 text-xs">
+                Click anywhere in the aircraft hold to place this ULD.
               </div>
             </div>
           </div>
