@@ -42,7 +42,7 @@ export const HANDLING: HandlingClass[] = [
   { key: 'cold', label: 'Cold chain / pharma', color: '#3987e5' },
   { key: 'perishable', label: 'Perishable / food', color: '#199e70' },
   { key: 'special', label: 'VAL / AVI', color: '#9085e9' },
-  { key: 'fragile', label: 'Fragile / top-only', color: '#d55181' },
+  { key: 'fragile', label: 'Fragile / non-stackable', color: '#d55181' },
   { key: 'heavy', label: 'Heavy ≥1 t / outsized', color: '#c98500' },
   { key: 'general', label: 'General cargo', color: '#8ea3a6' },
 ];
@@ -53,8 +53,8 @@ export function handlingOf(s: Shipment): HandlingClass {
   if (s.shc.some((c) => ['COL', 'FRO', 'CRT', 'PIL', 'ERT'].includes(c))) return k('cold');
   if (s.shc.some((c) => ['PER', 'PES', 'PEF', 'EAT'].includes(c))) return k('perishable');
   if (s.shc.includes('VAL') || s.shc.includes('AVI')) return k('special');
-  if (s.shc.includes('FRG') || s.maxTopLoad <= 0) return k('fragile');
   if (s.shc.includes('BIG') || s.weight >= 1000) return k('heavy');
+  if (s.shc.includes('FRG') || s.maxTopLoad <= 0) return k('fragile');
   return k('general');
 }
 

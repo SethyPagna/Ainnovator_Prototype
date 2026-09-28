@@ -6,7 +6,7 @@ import { randomManifest } from '../domain/generator';
 import { sampleManifest } from '../domain/manifests';
 import type { BuildResult, BuiltUld } from '../domain/packing/buildup';
 import type { StrategyId } from '../domain/packing/strategies';
-import type { StabilityResult } from '../physics/stability';
+import type { StabilityResult } from '../physics/cases';
 import type { ColorMode } from '../ui/colors';
 import { callEngine } from './engine';
 

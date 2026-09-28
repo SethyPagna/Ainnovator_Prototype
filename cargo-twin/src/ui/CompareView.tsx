@@ -4,6 +4,8 @@ import { STRATEGY_BY_ID } from '../domain/packing/strategies';
 import { IconBars } from './icons';
 import { kg, num, pct } from './format';
 
+const SHORT: Record<string, string> = { 'PMC-Q6': 'Q6', 'PMC-Q7': 'Q7', 'PMC-LD': 'PMC', 'PAG-LD': 'PAG', 'PAG-Q6': 'PAG6' };
+
 type Col = { key: string; label: string; get: (r: BuildResult) => number; fmt: (v: number) => string; better: 'low' | 'high'; bar?: boolean };
 
 const COLS: Col[] = [
@@ -11,11 +13,9 @@ const COLS: Col[] = [
   { key: 'deck', label: 'Deck m', get: (r) => r.kpis.deckMetres, fmt: (v) => num(v, 1), better: 'low' },
   { key: 'vol', label: 'Vol util', get: (r) => r.kpis.volUtil, fmt: (v) => pct(v, 1), better: 'high', bar: true },
   { key: 'wt', label: 'Wt util', get: (r) => r.kpis.wtUtil, fmt: (v) => pct(v, 1), better: 'high', bar: true },
-  { key: 'un', label: 'Left behind', get: (r) => r.kpis.unplacedKg, fmt: (v) => kg(v), better: 'low' },
-  { key: 'tare', label: 'Tare', get: (r) => r.kpis.tareKg, fmt: (v) => kg(v), better: 'low' },
-  { key: 'cg', label: 'ULD CG off.', get: (r) => r.kpis.cgOffsetAvg, fmt: (v) => `${num(v, 1)}%`, better: 'low' },
+  { key: 'un', label: 'Offloaded', get: (r) => r.kpis.unplacedKg, fmt: (v) => kg(v), better: 'low' },
+  { key: 'cg', label: 'ULD CG', get: (r) => r.kpis.cgOffsetAvg, fmt: (v) => `${num(v, 1)}%`, better: 'low' },
   { key: 'cost', label: 'Cost', get: (r) => r.kpis.cost, fmt: (v) => num(v), better: 'low' },
-  { key: 'ms', label: 'Time', get: (r) => r.ms, fmt: (v) => `${num(v)} ms`, better: 'low' },
 ];
 
 export function CompareView() {
@@ -63,12 +63,15 @@ export function CompareView() {
         <span style={{ flex: 1 }} />
         <button className="btn sm" onClick={runCompare} disabled={busy}>{busy ? progress?.label ?? 'Running…' : 'Re-run'}</button>
       </div>
-      <table>
+      <table style={{ tableLayout: 'fixed' }}>
+        <colgroup>
+          <col style={{ width: '31%' }} />
+          {COLS.map((c) => <col key={c.key} style={{ width: c.bar ? '12%' : c.key === 'ulds' ? '6%' : '9.75%' }} />)}
+        </colgroup>
         <thead>
           <tr>
             <th>Strategy</th>
             {COLS.map((c) => <th key={c.key}>{c.label}</th>)}
-            <th />
           </tr>
         </thead>
         <tbody>
@@ -77,24 +80,26 @@ export function CompareView() {
             const cur = build?.strategy === r.strategy && build.kpis.cost === r.kpis.cost;
             return (
               <tr key={r.strategy} className={cur ? 'cur' : ''}>
-                <td>
-                  <b>{def.name}</b> {r === winner && <span className="badge good" style={{ marginLeft: 6 }}>best</span>}
-                  <div className="desc">{def.description}</div>
+                <td title={def.description}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <b>{def.name}</b>
+                    {r === winner && <span className="badge good">best</span>}
+                    <span style={{ flex: 1 }} />
+                    <button className="btn sm" disabled={cur} onClick={() => { applyResult(r); set({ tab: 'build' }); }}>{cur ? 'In use' : 'Apply'}</button>
+                  </span>
+                  <div className="desc" title={def.description}>{def.tagline} · {num(r.ms)} ms · tare {kg(r.kpis.tareKg)}</div>
                 </td>
                 {COLS.map((c) => {
                   const v = c.get(r);
                   const isBest = Math.abs(v - best.get(c.key)!) < 1e-9 && results.length > 1;
                   return (
-                    <td key={c.key} className={isBest && c.key !== 'ms' ? 'best' : ''}>
+                    <td key={c.key} className={isBest ? 'best' : ''}>
                       {c.bar ? (
-                        <span className="cell-bar"><i style={{ width: `${Math.round(v * 60)}px` }} />{c.fmt(v)}</span>
+                        <span className="cell-bar"><i style={{ width: `${Math.round(v * 40)}px` }} />{c.fmt(v)}</span>
                       ) : c.fmt(v)}
                     </td>
                   );
                 })}
-                <td>
-                  <button className="btn sm" disabled={cur} onClick={() => { applyResult(r); set({ tab: 'build' }); }}>{cur ? 'In use' : 'Apply'}</button>
-                </td>
               </tr>
             );
           })}
@@ -102,11 +107,11 @@ export function CompareView() {
       </table>
       <div className="compare-cards">
         <div className="card">
-          <h4>ULD mix</h4>
+          <h4>ULD mix <span className="muted" style={{ fontWeight: 500 }}>· Q6/Q7 = main-deck PMC contours</span></h4>
           {results.map((r) => (
-            <div key={r.strategy} style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, fontSize: 12, padding: '2px 0' }}>
+            <div key={r.strategy} style={{ display: 'grid', gridTemplateColumns: '58px 1fr', gap: 6, fontSize: 12, padding: '2px 0' }}>
               <span className="dim">{STRATEGY_BY_ID[r.strategy].short}</span>
-              <span className="mono" style={{ fontSize: 11 }}>{Object.entries(r.kpis.byType).map(([t, n]) => `${n} ${t}`).join(' · ')}</span>
+              <span className="mono" style={{ fontSize: 11 }}>{Object.entries(r.kpis.byType).map(([t, n]) => `${n}×${SHORT[t] ?? t}`).join('  ')}</span>
             </div>
           ))}
         </div>

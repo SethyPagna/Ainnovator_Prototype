@@ -4,7 +4,7 @@ import { aircraftById, type Aircraft } from '../domain/aircraft';
 import type { Warning, WbResult } from '../domain/balance';
 import { REGIME_LABEL } from '../domain/rules';
 import { uldType, usableVolumeM3 } from '../domain/uld';
-import { CASES, THRESHOLDS } from '../physics/stability';
+import { CASES, THRESHOLDS } from '../physics/cases';
 import { Meter } from './bits';
 import { IconAlert, IconCheck, IconInfo, IconShake } from './icons';
 import { kg, num, pct, tonnes } from './format';

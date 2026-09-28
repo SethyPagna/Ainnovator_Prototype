@@ -36,7 +36,7 @@ export class UldScene {
   private shell: THREE.Group | null = null;
   private dolly = new THREE.Group();
   private cgMarker = new THREE.Group();
-  private arrow: THREE.ArrowHelper;
+  private arrow = new THREE.Group();
   private arrowLabel: CSS2DObject;
   private idLabel: CSS2DObject;
   private cgLabel: CSS2DObject;
@@ -118,7 +118,14 @@ export class UldScene {
     this.cgLabel.position.set(0.12, 0.1, 0);
     this.cgMarker.add(this.cgLabel);
 
-    this.arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(), 1, 0xec835a, 0.22, 0.12);
+    // load-case arrow: a solid shaft + head built along +Y, oriented per case
+    const arrowMat = new THREE.MeshBasicMaterial({ color: 0xec835a, transparent: true, opacity: 0.95, depthTest: false });
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1, 12), arrowMat);
+    shaft.name = 'shaft';
+    const head = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.26, 20), arrowMat);
+    head.name = 'head';
+    this.arrow.add(shaft, head);
+    this.arrow.renderOrder = 10;
     this.arrow.visible = false;
     this.scene.add(this.arrow);
     this.arrowLabel = this.label('', 'tag tag-load');
@@ -483,13 +490,22 @@ export class UldScene {
       const mag = Math.hypot(lateral.length(), vert);
       if (mag > 0.05) {
         const dir = lateral.length() > Math.abs(vert) ? lateral.normalize() : new THREE.Vector3(0, vert < 0 ? -1 : 1, 0);
-        const h = t.external.height / 100;
-        const origin = new THREE.Vector3(0, h + 0.5, 0).addScaledVector(dir, -0.6 * Math.min(1.5, mag));
-        this.arrow.position.copy(origin);
-        this.arrow.setDirection(dir);
-        this.arrow.setLength(0.4 + 0.6 * Math.min(1.5, mag), 0.2, 0.12);
+        const w = t.external.width / 100, h = t.external.height / 100, d = t.external.depth / 100;
+        const len = 0.45 + 0.22 * Math.min(1.5, mag);
+        // start outside the ULD on the side the load comes from and point through it
+        const reach = dir.y !== 0 ? h / 2 + 0.2 : Math.abs(dir.x) * (w / 2) + Math.abs(dir.z) * (d / 2) + 0.12;
+        const tip = new THREE.Vector3(0, dir.y !== 0 ? h + 0.1 : h * 0.55, 0).addScaledVector(dir, dir.y !== 0 ? 0 : -reach);
+        if (dir.y !== 0) tip.y = h + 0.12;
+        const tail = tip.clone().addScaledVector(dir, -len);
+        const shaft = this.arrow.getObjectByName('shaft')!;
+        const head = this.arrow.getObjectByName('head')!;
+        shaft.scale.set(1, len - 0.24, 1);
+        shaft.position.set(0, (len - 0.24) / 2, 0);
+        head.position.set(0, len - 0.13, 0);
+        this.arrow.position.copy(tail);
+        this.arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
         this.arrow.visible = true;
-        this.arrowLabel.position.copy(origin).add(new THREE.Vector3(0, 0.22, 0));
+        this.arrowLabel.position.copy(tip).lerp(tail, 0.5).add(new THREE.Vector3(0, 0.3, 0));
         (this.arrowLabel.element as HTMLElement).textContent = caption;
         this.arrowLabel.visible = !!caption;
       } else {

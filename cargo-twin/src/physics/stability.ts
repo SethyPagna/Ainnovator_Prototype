@@ -7,78 +7,14 @@ import { uldType } from '../domain/uld';
 // dynamic box. After settling under 1 g, each representative load case is applied as a change
 // of the effective gravity vector (inertial load) and the pieces that slide or tip are flagged.
 // Load factors are REPRESENTATIVE restraint cases, not certification values. Containers are
-// restrained by their walls and door; a pallet net is modelled as a rigid restraint tensioned
-// around the outside of the load (sides and top), so only internal voids let pieces move.
+// restrained by their walls and door; a pallet net is modelled as a rigid restraint around the
+// outside of the load that drapes over every exposed stack top with ~2 cm slack, so pieces can
+// still slide into internal voids.
 
-export type CaseId = 'fwd' | 'lat' | 'vert';
+import { CASES, THRESHOLDS, type CaseId, type CaseResult, type Mover, type StabilityResult, type StressCase } from './cases';
 
-export interface StressCase {
-  id: CaseId;
-  label: string;
-  short: string;
-  description: string;
-  duration: number; // s
-  /** effective acceleration (in g, ULD frame: x lateral, y up, z towards door/net) at time t */
-  g: (t: number) => [number, number, number];
-}
-
-const ramp = (t: number, t0: number, t1: number) => (t <= t0 ? 0 : t >= t1 ? 1 : (t - t0) / (t1 - t0));
-const pulse = (t: number, a: number, b: number, c: number, d: number) => ramp(t, a, b) * (1 - ramp(t, c, d));
-
-export const CASES: StressCase[] = [
-  {
-    id: 'fwd',
-    label: 'Braking / RTO — 1.5 g longitudinal',
-    short: '1.5 g FWD',
-    description: 'Deceleration pushes the load towards the door / net side.',
-    duration: 1.7,
-    g: (t) => [0, -1, 1.5 * pulse(t, 0.05, 0.3, 0.8, 1.05)],
-  },
-  {
-    id: 'lat',
-    label: 'Lateral — 1.5 g side load',
-    short: '1.5 g LAT',
-    description: 'Side load towards the contoured (outboard) face.',
-    duration: 1.7,
-    g: (t) => [-1.5 * pulse(t, 0.05, 0.3, 0.8, 1.05), -1, 0],
-  },
-  {
-    id: 'vert',
-    label: 'Vertical gust — +2.5 g / 0 g',
-    short: '+2.5 / 0 g VERT',
-    description: 'Hard gust: 2.5 g down, then a brief zero-g unloading before returning to 1 g.',
-    duration: 1.9,
-    g: (t) => {
-      const down = pulse(t, 0.05, 0.25, 0.45, 0.6);
-      const up = pulse(t, 0.6, 0.7, 0.8, 0.95);
-      return [0, -1 - 1.5 * down + 1.0 * up, 0];
-    },
-  },
-];
-
-export interface Mover {
-  pieceId: string;
-  disp: number; // final displacement (cm)
-  maxDisp: number; // peak displacement during the case (cm)
-  tilt: number; // final tilt (deg)
-  kind: 'shift' | 'tip' | 'transient';
-}
-
-export interface CaseResult {
-  id: CaseId;
-  movers: Mover[];
-  maxDisp: number;
-  maxTilt: number;
-}
-
-export interface StabilityResult {
-  uldId: string;
-  cases: CaseResult[];
-  verdict: 'stable' | 'restrain' | 'unstable';
-  worst: Mover[];
-}
-
-export const THRESHOLDS = { shiftCm: 5, transientCm: 8, tipDeg: 12 };
+export { CASES, THRESHOLDS };
+export type { CaseId, CaseResult, Mover, StabilityResult, StressCase };
 
 const STEP = 1 / 240;
 
@@ -106,7 +42,7 @@ export class StabilitySim {
     const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.81, 0) });
     world.broadphase = new CANNON.SAPBroadphase(world);
     world.allowSleep = false;
-    (world.solver as CANNON.GSSolver).iterations = 16;
+    (world.solver as CANNON.GSSolver).iterations = 20;
     (world.solver as CANNON.GSSolver).tolerance = 1e-7;
     const shellMat = new CANNON.Material('shell');
     const itemMat = new CANNON.Material('item');
@@ -152,6 +88,14 @@ export class StabilitySim {
       const hx = (maxX - minX) / 2, hz = (maxZ - minZ) / 2, hy = (top - floor) / 2;
       addWall(hx + th, th / 2, hz + th, cx, floor - th / 2, cz);
       addWall(hx + th, th / 2, hz + th, cx, top + th / 2, cz);
+      // the net drapes over every exposed stack top with ~2 cm of slack
+      for (const p of pl) {
+        const covered = pl.some((q) => q !== p && q.y >= p.y + p.h - 0.5 && q.x < p.x + p.w && p.x < q.x + q.w && q.z < p.z + p.d && p.z < q.z + q.d);
+        if (covered) continue;
+        const y = (p.y + p.h + 2) * cm;
+        if (y + 0.02 >= top) continue;
+        addWall((p.w / 2) * cm, 0.025, (p.d / 2) * cm, (p.x + p.w / 2) * cm, y + 0.025, (p.z + p.d / 2) * cm);
+      }
       addWall(th / 2, hy + th, hz + th, minX - th / 2, cy, cz);
       addWall(th / 2, hy + th, hz + th, maxX + th / 2, cy, cz);
       addWall(hx + th, hy + th, th / 2, cx, cy, minZ - th / 2);
@@ -160,9 +104,13 @@ export class StabilitySim {
     world.addBody(shell);
 
     const shrink = 0.25; // cm clearance per face so touching pieces do not start interpenetrating
+    // An iterative solver mis-handles extreme mass ratios (a 1 t crate on a 10 kg carton ejects the
+    // carton). Friction-driven sliding and tipping do not depend on absolute mass, so ratios are
+    // compressed to at most 20:1 for numerical robustness.
+    const wMax = Math.max(1, ...uld.placements.map((p) => p.weight));
     for (const p of uld.placements) {
       const body = new CANNON.Body({
-        mass: p.weight,
+        mass: Math.max(p.weight, wMax / 20),
         material: itemMat,
         shape: new CANNON.Box(new CANNON.Vec3(((p.w / 2 - shrink) * cm), ((p.h / 2 - shrink) * cm), ((p.d / 2 - shrink) * cm))),
         position: new CANNON.Vec3((p.x + p.w / 2) * cm, (p.y + p.h / 2) * cm + 0.0005, (p.z + p.d / 2) * cm),
@@ -205,6 +153,7 @@ export class StabilitySim {
       if (this.phase === 'settle') {
         this.world.gravity.set(0, -9.81, 0);
         this.world.step(STEP);
+        this.clampVelocities();
         this.t += STEP;
         if (this.t >= this.settleTime) {
           this.baseline = this.bodies.map((b) => ({ p: b.position.clone(), q: b.quaternion.clone() }));
@@ -219,6 +168,7 @@ export class StabilitySim {
       const [gx, gy, gz] = c.g(this.t);
       this.world.gravity.set(gx * 9.81, gy * 9.81, gz * 9.81);
       this.world.step(STEP);
+      this.clampVelocities();
       this.t += STEP;
       this.bodies.forEach((b, i) => {
         const d = b.position.distanceTo(this.baseline[i].p) * 100;
@@ -236,6 +186,16 @@ export class StabilitySim {
       }
     }
     return this.phase === 'done';
+  }
+
+  /** Guard against solver blow-ups: cargo inside a ULD never moves faster than a couple of m/s. */
+  private clampVelocities() {
+    for (const b of this.bodies) {
+      const v = b.velocity.length();
+      if (v > 2.5) b.velocity.scale(2.5 / v, b.velocity);
+      const w = b.angularVelocity.length();
+      if (w > 8) b.angularVelocity.scale(8 / w, b.angularVelocity);
+    }
   }
 
   private measure(id: CaseId): CaseResult {

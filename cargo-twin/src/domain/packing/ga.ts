@@ -33,7 +33,7 @@ export function runGa(manifest: { shipments: Shipment[] }, ac: Aircraft, opts: G
   const rnd = mulberry32(opts.seed);
   const ids = manifest.shipments.map((s) => s.id);
   const ships = new Map(manifest.shipments.map((s) => [s.id, s]));
-  const pop = opts.popSize ?? 8;
+  const pop = opts.popSize ?? 6;
   const elite = Math.max(2, Math.round(pop * 0.25));
   const mutants = Math.max(1, Math.round(pop * 0.15));
 

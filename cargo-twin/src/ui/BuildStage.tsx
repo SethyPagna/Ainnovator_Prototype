@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { selectedUld, useStore } from '../app/store';
 import { startPhysics, stopPhysics } from '../app/engine';
-import { CASES } from '../physics/stability';
+import { CASES } from '../physics/cases';
 import { UldScene, type MoverKind } from '../three/UldScene';
 import { uldType } from '../domain/uld';
 import { aircraftById } from '../domain/aircraft';

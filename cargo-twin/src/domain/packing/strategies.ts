@@ -8,6 +8,7 @@ export interface StrategyDef {
   name: string;
   short: string;
   description: string;
+  tagline: string;
   score: ScoreRule;
   order: 'heavy' | 'height' | 'volume' | 'density';
 }
@@ -18,6 +19,7 @@ export const STRATEGIES: StrategyDef[] = [
     name: 'Wall builder',
     short: 'Wall',
     description: 'Heavy-first order; fills from the rear wall towards the door/net, floor to ceiling, the way ramp agents build a ULD by hand.',
+    tagline: 'Heavy first · back wall to door',
     score: 'wall',
     order: 'heavy',
   },
@@ -26,6 +28,7 @@ export const STRATEGIES: StrategyDef[] = [
     name: 'Layer builder',
     short: 'Layer',
     description: 'Tallest-first order; completes a flat floor layer before stacking, which keeps stacks level and stable.',
+    tagline: 'Tallest first · floor layer first',
     score: 'layer',
     order: 'height',
   },
@@ -34,6 +37,7 @@ export const STRATEGIES: StrategyDef[] = [
     name: 'Max-contact EP',
     short: 'Contact',
     description: 'Largest-volume-first; every extreme point is scored by contact area with walls, floor and neighbours for tight packing.',
+    tagline: 'Largest first · max contact area',
     score: 'contact',
     order: 'volume',
   },
@@ -42,6 +46,7 @@ export const STRATEGIES: StrategyDef[] = [
     name: 'CG-balanced',
     short: 'Balanced',
     description: 'Densest-first; placement penalises drift of the ULD centre of gravity away from the base centre.',
+    tagline: 'Densest first · CG-centred',
     score: 'balanced',
     order: 'density',
   },
@@ -50,6 +55,7 @@ export const STRATEGIES: StrategyDef[] = [
     name: 'Hybrid GA refinement',
     short: 'GA',
     description: 'Biased random-key genetic search over shipment order and placement rule, seeded with the greedy results (time-boxed).',
+    tagline: 'Random-key GA · seeded, time-boxed',
     score: 'wall',
     order: 'heavy',
   },
