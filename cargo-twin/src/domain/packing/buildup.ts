@@ -354,6 +354,10 @@ export function buildUp(
     open.push(...mine);
   }
 
+  // Rebalance: a build whose CG stays off-centre after centring is re-packed with the
+  // CG-balanced rule; the better-balanced layout wins if every piece still fits.
+  for (const u of open) rebalance(u, ships, opts.minSupport);
+
   const ulds = open.map((u) => {
     typeCount[u.type.id] = (typeCount[u.type.id] ?? 0) + 1;
     return finalize(u, typeCount[u.type.id], ships);
@@ -395,6 +399,35 @@ function consolidate(
       }
     }
   }
+}
+
+function cgOffsetOf(t: UldType, pl: Placement[]): number {
+  const W = pl.reduce((s, p) => s + p.weight, 0) + t.tare;
+  const bottom = t.outline.filter((q) => q[1] === 0).map((q) => q[0]);
+  const bx = (Math.min(...bottom) + Math.max(...bottom)) / 2;
+  const cx = (pl.reduce((s, p) => s + p.weight * (p.x + p.w / 2), 0) + t.tare * bx) / W;
+  const cz = (pl.reduce((s, p) => s + p.weight * (p.z + p.d / 2), 0) + (t.tare * t.external.depth) / 2) / W;
+  return Math.max(Math.abs(cx - bx) / t.baseWidth, Math.abs(cz - t.external.depth / 2) / t.external.depth);
+}
+
+function rebalance(u: OpenUld, ships: Map<string, Shipment>, minSupport: number) {
+  const t = u.type;
+  const pl = u.packer.placements;
+  if (!pl.length || pl.length > 40) return;
+  const probe = pl.map((p) => ({ ...p }));
+  centreLoad(t, probe);
+  const before = cgOffsetOf(t, probe);
+  if (before <= 0.08) return;
+  const pieces: Piece[] = pl.map((p) => {
+    const s = ships.get(p.shipmentId)!;
+    return { id: p.pieceId, shipmentId: s.id, index: 0, l: s.l, w: s.w, h: s.h, weight: p.weight };
+  });
+  pieces.sort((a, b) => b.weight - a.weight || b.l * b.w * b.h - a.l * a.w * a.h);
+  const alt = new UldPacker(t, { minSupport, score: 'balanced', heavyLow: 1, maxGross: u.cap });
+  for (const p of pieces) if (!alt.place(p, ships.get(p.shipmentId)!)) return;
+  const trial = alt.placements.map((p) => ({ ...p }));
+  centreLoad(t, trial);
+  if (cgOffsetOf(t, trial) < before - 0.01) u.packer = alt;
 }
 
 function itemVol(pl: Placement[]): number {

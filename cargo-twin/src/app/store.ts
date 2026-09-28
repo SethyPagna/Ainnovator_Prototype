@@ -52,6 +52,7 @@ export interface AppState {
   toasts: Toast[];
   help: boolean;
   lir: boolean;
+  library: boolean;
   editor: { open: boolean; shipment: Shipment | null };
   tour: { active: boolean; step: number; label: string };
   physicsRequest: number;
@@ -125,6 +126,7 @@ export const useStore = create<AppState>((set, get) => ({
   toasts: [],
   help: false,
   lir: false,
+  library: false,
   editor: { open: false, shipment: null },
   tour: { active: false, step: 0, label: '' },
   physicsRequest: 0,

@@ -110,7 +110,7 @@ export function BuildStage() {
       if (m.runId !== runId) return;
       if (m.type === 'frame') {
         const c = CASES[m.caseIndex];
-        sc.setPhysicsFrame(m.transforms, m.g, m.phase === 'case' && c ? c.short : '');
+        sc.setPhysicsFrame(m.transforms, m.g, m.phase === 'case' && c ? c.short : '', m.phase === 'case' && c ? c.g(c.id === 'vert' ? 0.5 : 0.6) : undefined);
         if (m.caseIndex !== lastCase || m.phase !== lastPhase) {
           lastCase = m.caseIndex;
           lastPhase = m.phase;
@@ -165,11 +165,11 @@ export function BuildStage() {
                 ))}
               </div>
               <span className="div" />
-              <button className={`btn sm ${xray ? 'on' : ''}`} onClick={() => set({ xray: !xray })} title="X-ray (X)"><IconEye size={14} /> X-ray</button>
-              <button className={`btn sm ${explode ? 'on' : ''}`} onClick={() => set({ explode: !explode })} disabled={physics.running} title="Exploded view (E)"><IconExplode size={14} /> Explode</button>
+              <button className={`btn sm ${xray ? 'on' : ''}`} onClick={() => set({ xray: !xray })} title="X-ray (X)"><IconEye size={14} /> <span className="lbl">X-ray</span></button>
+              <button className={`btn sm ${explode ? 'on' : ''}`} onClick={() => set({ explode: !explode })} disabled={physics.running} title="Exploded view (E)"><IconExplode size={14} /> <span className="lbl">Explode</span></button>
               <button className="btn sm icon" onClick={() => sceneRef.current?.resetView()} title="Reset camera (V)" aria-label="Reset camera"><IconReset size={14} /></button>
               <span className="div" />
-              <button className={`btn sm ${physics.running ? 'on' : ''}`} onClick={runStress} disabled={physics.running} title="Rigid-body stress test (T)"><IconShake size={14} /> Stress test</button>
+              <button className={`btn sm ${physics.running ? 'on' : ''}`} onClick={runStress} disabled={physics.running} title="Rigid-body stress test (T)"><IconShake size={14} /> <span className="lbl">Stress test</span></button>
             </div>
             {showHud && <StressHud onClear={clearStress} />}
           </div>

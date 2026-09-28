@@ -27,7 +27,7 @@ export class AircraftScene {
   private renderer: THREE.WebGLRenderer;
   private labels: CSS2DRenderer;
   private scene = new THREE.Scene();
-  private camera = new THREE.PerspectiveCamera(34, 1, 0.5, 600);
+  private camera = new THREE.PerspectiveCamera(36, 1, 0.5, 600);
   private controls: OrbitControls;
   private host: HTMLElement;
   private ro: ResizeObserver;
@@ -304,8 +304,8 @@ export class AircraftScene {
 
   private frameAll() {
     const L = this.ac?.body.length ?? 64;
-    this.controls.target.set(L * 0.03, -1.8, 4);
-    this.camera.position.set(L * 0.3, L * 0.33, -L * 1.05);
+    this.controls.target.set(L * 0.05, -2.2, 4);
+    this.camera.position.set(L * 0.33, L * 0.34, -L * 1.1);
     this.controls.update();
   }
 

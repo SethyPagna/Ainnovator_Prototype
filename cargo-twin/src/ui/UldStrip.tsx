@@ -54,7 +54,7 @@ export function UldStrip() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <UldSilhouette typeId={u.typeId} fill={u.volUtil} />
               <div style={{ minWidth: 0 }}>
-                <div className="ty">{t.alias} · {t.contour}</div>
+                <div className="ty">{t.iata} · {t.contour}</div>
                 <div className="ty">{u.placements.length} pcs · {u.shipmentIds.length} AWB{u.shipmentIds.length > 1 ? 's' : ''}</div>
               </div>
             </div>

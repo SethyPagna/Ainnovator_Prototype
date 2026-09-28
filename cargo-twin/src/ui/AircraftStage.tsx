@@ -85,7 +85,7 @@ export function AircraftStage() {
         <div className="overlay-tl">
           <div className="glass toolbar" role="toolbar" aria-label="Load plan tools">
             <button className="btn sm primary" onClick={() => runPlan(true)} disabled={!build || busy.plan} title="Auto-plan positions (A)"><IconPlane size={14} /> Auto-plan</button>
-            <button className="btn sm" onClick={clearPlan} disabled={!wb?.loaded} title="Unload every position"><IconTrash size={14} /> Clear</button>
+            <button className="btn sm" onClick={clearPlan} disabled={!wb?.loaded} title="Unload every position"><IconTrash size={14} /> <span className="lbl">Clear</span></button>
             <span className="div" />
             <div className="seg" role="radiogroup" aria-label="Colour ULDs by">
               <button className={acColor === 'handling' ? 'on' : ''} onClick={() => set({ acColor: 'handling' })}>Handling</button>
@@ -93,8 +93,8 @@ export function AircraftStage() {
             </div>
             <button className="btn sm icon" onClick={() => sceneRef.current?.resetView()} aria-label="Reset camera" title="Reset camera (V)"><IconReset size={14} /></button>
             <span className="div" />
-            <button className="btn sm" onClick={() => set({ lir: true })} disabled={!wb?.loaded} title="Loading instruction sheet (L)"><IconPrint size={14} /> LIR</button>
-            <button className="btn sm" onClick={exportJson} disabled={!wb?.loaded} title="Export load plan as JSON"><IconDownload size={14} /> JSON</button>
+            <button className="btn sm" onClick={() => set({ lir: true })} disabled={!wb?.loaded} title="Loading instruction sheet (L)"><IconPrint size={14} /> <span className="lbl">LIR</span></button>
+            <button className="btn sm" onClick={exportJson} disabled={!wb?.loaded} title="Export load plan as JSON"><IconDownload size={14} /> <span className="lbl">JSON</span></button>
           </div>
         </div>
         <div className="overlay-br">

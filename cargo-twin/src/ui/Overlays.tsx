@@ -93,6 +93,7 @@ const SHORTCUTS: [string, string][] = [
   ['V', 'Reset camera'],
   ['R', 'Random manifest'],
   ['L', 'Loading instruction sheet'],
+  ['U', 'ULD & aircraft equipment library'],
   ['Esc', 'Close dialogs / stop the demo'],
 ];
 

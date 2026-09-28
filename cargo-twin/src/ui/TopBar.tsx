@@ -1,7 +1,7 @@
 import { AIRCRAFT } from '../domain/aircraft';
 import { useStore } from '../app/store';
 import { runSampleFlight, stopTour } from '../app/pipeline';
-import { IconKeyboard, IconSpark, IconStop, Mark } from './icons';
+import { IconKeyboard, IconLayers, IconSpark, IconStop, Mark } from './icons';
 
 export function TopBar() {
   const manifest = useStore((s) => s.manifest);
@@ -71,6 +71,9 @@ export function TopBar() {
           <IconSpark /> Try a sample flight
         </button>
       )}
+      <button className="btn icon ghost" aria-label="Equipment library" title="ULD & aircraft library (U)" onClick={() => set({ library: true })}>
+        <IconLayers />
+      </button>
       <button className="btn icon ghost" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" onClick={() => set({ help: true })}>
         <IconKeyboard />
       </button>

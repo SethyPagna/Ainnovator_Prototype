@@ -310,7 +310,7 @@ export class UldScene {
       (this.cgLabel.element as HTMLElement).textContent = `ULD CG · ${uld.cgOffsetPct.x >= 0 ? '+' : ''}${uld.cgOffsetPct.x.toFixed(1)}% lat · ${uld.cgOffsetPct.z >= 0 ? '+' : ''}${uld.cgOffsetPct.z.toFixed(1)}% long`;
       this.addCgGuides(t, cx);
       (this.idLabel.element as HTMLElement).innerHTML = `<b>${uld.id}</b><span>${t.iata} · ${t.contour} · ${Math.round(uld.gross).toLocaleString('en-US')} kg</span>`;
-      this.idLabel.position.set(0, t.external.height / 100 + 0.28, 0);
+      this.idLabel.position.set(t.external.width / 200, t.external.height / 100 + 0.3, t.external.depth / 200);
       this.applyColors();
       this.frame(t);
     } else {
@@ -453,7 +453,7 @@ export class UldScene {
   }
 
   /** Physics frame: piece transforms (ULD frame, metres, placement order) and effective g. */
-  setPhysicsFrame(buf: Float32Array | null, g: [number, number, number] | null, caption = '') {
+  setPhysicsFrame(buf: Float32Array | null, g: [number, number, number] | null, caption = '', peak?: [number, number, number]) {
     const t = this.type;
     if (!t) return;
     if (!buf) {
@@ -475,11 +475,12 @@ export class UldScene {
       v.mesh.visible = true;
     });
     if (g) {
-      const lateral = new THREE.Vector3(g[0], 0, g[2]);
-      const vert = g[1] + 1; // deviation from 1 g
-      const mag = Math.hypot(lateral.length(), vert);
-      this.shake.set(g[0] * 0.05, -vert * 0.03, g[2] * 0.05);
+      this.shake.set(g[0] * 0.05, -(g[1] + 1) * 0.03, g[2] * 0.05);
       this.shakeT += 1;
+      const a = peak ?? g; // the arrow shows the load case direction for the whole case
+      const lateral = new THREE.Vector3(a[0], 0, a[2]);
+      const vert = a[1] + 1; // deviation from 1 g
+      const mag = Math.hypot(lateral.length(), vert);
       if (mag > 0.05) {
         const dir = lateral.length() > Math.abs(vert) ? lateral.normalize() : new THREE.Vector3(0, vert < 0 ? -1 : 1, 0);
         const h = t.external.height / 100;

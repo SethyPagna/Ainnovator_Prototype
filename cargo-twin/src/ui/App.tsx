@@ -13,6 +13,7 @@ import { CompareView } from './CompareView';
 import { RightPanel } from './RightPanel';
 import { HelpOverlay, LirSheet, Toasts, TourBanner } from './Overlays';
 import { MobileView } from './MobileView';
+import { Library } from './Library';
 import { IconBars, IconBox, IconPlane } from './icons';
 
 function useIsNarrow() {
@@ -84,7 +85,7 @@ function useShortcuts() {
       switch (k) {
         case 'Escape':
           if (st.tour.active) stopTour();
-          st.set({ help: false, lir: false, editor: { open: false, shipment: null }, selectedPieceId: null });
+          st.set({ help: false, lir: false, library: false, editor: { open: false, shipment: null }, selectedPieceId: null });
           break;
         case '?':
           st.set({ help: !st.help });
@@ -113,6 +114,7 @@ function useShortcuts() {
         }
         case 'r': case 'R': st.loadRandom(); break;
         case 'l': case 'L': if (st.wb?.loaded) st.set({ lir: true }); break;
+        case 'u': case 'U': st.set({ library: !st.library }); break;
         case 'v': case 'V': window.dispatchEvent(new CustomEvent('cct-reset-view')); break;
         case '[': case ']': {
           if (!ulds.length) break;
@@ -175,6 +177,7 @@ export function App() {
       </div>
       {editor.open && <ShipmentEditor key={editor.shipment?.id ?? 'new'} />}
       <HelpOverlay />
+      <Library />
       <LirSheet />
       <Toasts />
     </>
