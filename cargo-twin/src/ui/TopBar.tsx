@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { AIRCRAFT } from '../domain/aircraft';
 import { useStore } from '../app/store';
 import { runSampleFlight, stopTour } from '../app/pipeline';
@@ -11,6 +12,10 @@ export function TopBar() {
   const wb = useStore((s) => s.wb);
   const tab = useStore((s) => s.tab);
   const tour = useStore((s) => s.tour);
+  const lir = useStore((s) => s.lir);
+  const [lirSeen, setLirSeen] = useState(false);
+  useEffect(() => { if (lir) setLirSeen(true); }, [lir]);
+  useEffect(() => setLirSeen(false), [wb?.loaded === 0]);
   const set = useStore((s) => s.set);
   const setAircraft = useStore((s) => s.setAircraft);
 
@@ -21,7 +26,7 @@ export function TopBar() {
     { n: 2, label: 'Build-up', done: !!build, active: !!build && tab === 'build' && !physics.running && !hasStability, go: () => set({ tab: 'build' }) },
     { n: 3, label: 'Stability', done: hasStability, active: physics.running, go: () => set({ tab: 'build' }) },
     { n: 4, label: 'Load plan', done: planned, active: tab === 'aircraft', go: () => set({ tab: 'aircraft' }) },
-    { n: 5, label: 'LIR', done: false, active: false, go: () => planned && set({ lir: true }) },
+    { n: 5, label: 'LIR', done: lirSeen && planned, active: false, go: () => planned && set({ lir: true }) },
   ];
 
   return (
