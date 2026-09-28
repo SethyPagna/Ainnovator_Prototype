@@ -30,7 +30,8 @@ translucent freighter with its decks, positions, loaded ULDs, CG rings and the M
 
 **Try it:** press **“Try a sample flight”** (or <kbd>S</kbd>) — it loads a manifest, builds the ULDs,
 replays a build sequence, runs the stress test and auto-plans the aircraft in about 25 seconds.
-<kbd>?</kbd> lists every keyboard shortcut.
+<kbd>?</kbd> lists every keyboard shortcut; <kbd>U</kbd> opens the equipment library (ULD cross-sections to
+scale and aircraft data).
 
 ## Run it
 
@@ -45,7 +46,8 @@ npm run preview    # serves the build on http://localhost:8811
 
 The build uses relative asset paths (`base: './'`), bundles everything locally (fonts included; no
 CDN, no service worker, no runtime network requests) and works from any sub-path such as
-`/play/cargo-twin/` or inside an `<iframe>`. Total size is about 1.2 MB (≈ 330 kB gzipped JS).
+`/play/cargo-twin/` or inside an `<iframe>`; packing and physics run in Web Workers with a main-thread
+fallback for sandboxes that block module workers. Total size is about 1.3 MB (fonts included).
 
 ## How it is built
 

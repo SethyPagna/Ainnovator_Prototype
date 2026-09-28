@@ -6,7 +6,7 @@ import type { BuiltUld } from '../domain/packing/buildup';
 import type { Placement } from '../domain/packing/packer';
 import { uldType, type UldType } from '../domain/uld';
 import { handlingOf, shipmentColor, tempColor, weightColor, type ColorMode, STATUS } from '../ui/colors';
-import { buildUldShell, createRenderer, dgLabelTexture, easeInOutCubic, easeOutCubic, environment, gridTexture, uldCentreX, type GlInfo } from './common';
+import { buildUldShell, createRenderer, dgLabelTexture, disposeTree, easeInOutCubic, easeOutCubic, environment, gridTexture, uldCentreX, type GlInfo } from './common';
 
 const FLOOR = -0.46;
 const GAP = 0.004; // visual gap between pieces (m)
@@ -209,6 +209,7 @@ export class UldScene {
   }
 
   private buildDolly(t: UldType | null) {
+    disposeTree(this.dolly);
     this.dolly.clear();
     const w = t ? t.external.width / 100 + 0.2 : 2.3;
     const d = t ? t.external.depth / 100 + 0.2 : 1.8;
@@ -264,7 +265,10 @@ export class UldScene {
   setUld(uld: BuiltUld | null, ships: Map<string, Shipment>) {
     this.demo = false;
     this.clearItems();
-    if (this.shell) this.root.remove(this.shell);
+    if (this.shell) {
+      this.root.remove(this.shell);
+      disposeTree(this.shell);
+    }
     this.uld = uld;
     const t = uld ? uldType(uld.typeId) : uldType('AKE');
     this.type = t;
@@ -328,7 +332,10 @@ export class UldScene {
 
   private cgGuides: THREE.Object3D[] = [];
   private addCgGuides(t: UldType, cx: number) {
-    for (const o of this.cgGuides) this.root.remove(o);
+    for (const o of this.cgGuides) {
+      this.root.remove(o);
+      disposeTree(o);
+    }
     this.cgGuides = [];
     const u = this.uld!;
     const p = this.cgMarker.position;

@@ -413,8 +413,8 @@ label.field { display: flex; flex-direction: column; gap: 4px; font-size: 11px; 
 .lir .disclaimer { margin-top: 14px; font-size: 10px; color: #666; }
 .print-only { display: none; }
 @media print {
-  body { overflow: visible; background: #fff; }
-  .app, .modal-back, .toasts { display: none !important; }
+  html, body { overflow: visible !important; height: auto !important; background: #fff; }
+  #root, .app, .modal-back, .toasts { display: none !important; }
   .print-only { display: block !important; }
   @page { size: A4 landscape; margin: 10mm; }
 }

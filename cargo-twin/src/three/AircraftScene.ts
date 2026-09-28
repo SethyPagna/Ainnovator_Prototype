@@ -6,7 +6,7 @@ import type { Shipment } from '../domain/cargo';
 import type { BuiltUld } from '../domain/packing/buildup';
 import { uldType, type UldType } from '../domain/uld';
 import { handlingOf, weightColor } from '../ui/colors';
-import { createRenderer, easeInOutCubic, environment, gridTexture, outlineGeometry, type GlInfo } from './common';
+import { createRenderer, disposeTree, easeInOutCubic, environment, gridTexture, outlineGeometry, type GlInfo } from './common';
 
 export type AircraftColorMode = 'handling' | 'weight';
 
@@ -110,6 +110,8 @@ export class AircraftScene {
   setAircraft(ac: Aircraft) {
     if (this.ac?.id === ac.id) return;
     this.ac = ac;
+    disposeTree(this.airframe);
+    disposeTree(this.decks);
     this.airframe.clear();
     this.decks.clear();
     this.posLines.clear();
@@ -415,6 +417,7 @@ export class AircraftScene {
   /** CG markers (arms in metres from the nose datum). */
   setCg(towArm: number | null, zfwArm: number | null, towMac: number, zfwMac: number, limits: [number, number] | null, ok: boolean) {
     const ac = this.ac;
+    disposeTree(this.cgGroup);
     this.cgGroup.clear();
     if (!ac || towArm === null || zfwArm === null) {
       this.cgLabel.visible = this.zfwLabel.visible = false;

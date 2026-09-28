@@ -44,6 +44,17 @@ export function environment(renderer: THREE.WebGLRenderer): THREE.Texture {
   return env;
 }
 
+/** Dispose geometries and materials below an object (textures shared via caches are kept). */
+export function disposeTree(root: THREE.Object3D, keep: Set<THREE.BufferGeometry> = new Set()) {
+  root.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (m.geometry && !keep.has(m.geometry)) m.geometry.dispose();
+    const mat = m.material as THREE.Material | THREE.Material[] | undefined;
+    if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
+    else mat?.dispose();
+  });
+}
+
 export const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 export const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 

@@ -1,5 +1,5 @@
 import { buildOverlapMap, positionsAdjacent, type Aircraft, type Position } from './aircraft';
-import { armFromMac, computeWb, inEnvelope, pctMac, positionIssue } from './balance';
+import { armFromMac, inEnvelope, pctMac, positionIssue } from './balance';
 import type { Shipment } from './cargo';
 import { adjacencyConflict } from './rules';
 import type { BuiltUld } from './packing/buildup';
@@ -188,9 +188,4 @@ export function autoPlan(ulds: BuiltUld[], ac: Aircraft, ships: Map<string, Ship
       reason: feas.get(u.id)!.length ? 'All compatible positions are taken or blocked' : `No ${ac.short} position accepts ${u.typeId} at ${Math.round(u.gross)} kg`,
     }));
   return { assignments, unassigned, cost: Math.round(cur), evals, trace };
-}
-
-export function planSummary(ac: Aircraft, ulds: BuiltUld[], assignments: Record<string, string>, ships: Map<string, Shipment>, fuel: number, trip: number) {
-  const wb = computeWb({ ac, ulds, assignments, fuel, tripFuel: trip, ships });
-  return { wb, zfwMac: pctMac(ac, wb.zfwArm) };
 }
