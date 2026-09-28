@@ -1,0 +1,33 @@
+{
+  "name": "cargo-twin",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Cathay Cargo Twin v2 - air-cargo load-planning digital twin (portfolio prototype)",
+  "scripts": {
+    "dev": "vite --port 5301 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 8811 --strictPort",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "cannon-es": "^0.20.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.1",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}
