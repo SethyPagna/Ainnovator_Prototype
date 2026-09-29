@@ -1,9 +1,9 @@
 {
   "name": "cargo-twin",
   "private": true,
-  "version": "2.0.0",
+  "version": "3.0.0",
   "type": "module",
-  "description": "Cathay Cargo Twin v2 - air-cargo load-planning digital twin (portfolio prototype)",
+  "description": "Cargo Twin - customizable cargo spaces, constraint-aware 3D packing and load-planning simulation",
   "scripts": {
     "dev": "vite --port 5301 --strictPort",
     "build": "tsc --noEmit && vite build",

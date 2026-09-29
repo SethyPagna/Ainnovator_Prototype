@@ -34,10 +34,11 @@ export function TopBar() {
       <div className="brand">
         <Mark />
         <div>
-          <h1>Cathay Cargo Twin</h1>
-          <small>LOAD-PLANNING DIGITAL TWIN · v2</small>
+          <h1>Cargo Twin</h1>
+          <small>AIRCRAFT WORKSPACE · v3</small>
         </div>
       </div>
+      <a className="btn ghost" href="?workspace=studio" style={{ textDecoration: 'none' }}>← Cargo studio</a>
       <div className="flight-chip" title={manifest?.description ?? 'No flight loaded'}>
         {manifest ? (
           <>

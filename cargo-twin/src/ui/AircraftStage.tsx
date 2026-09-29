@@ -59,7 +59,7 @@ export function AircraftStage() {
     const seq = loadSequence(ac, plan.assignments);
     const byId = new Map(build.ulds.map((u) => [u.id, u]));
     const data = {
-      generator: 'Cathay Cargo Twin v2 (portfolio prototype - not for operational use)',
+      generator: 'Cargo Twin aircraft workspace (portfolio prototype - not for operational use)',
       generatedAt: new Date().toISOString(),
       flight: m.flight, route: m.route, aircraft: ac.name,
       weightAndBalance: {
