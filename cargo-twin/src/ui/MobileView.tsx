@@ -39,8 +39,8 @@ export function MobileView() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <Mark />
         <div>
-          <b>Cathay Cargo Twin</b>
-          <div className="muted" style={{ fontSize: 11 }}>Read-only phone view · open on a laptop for the full planner</div>
+          <b>Cargo Twin · Aircraft</b>
+          <div className="muted" style={{ fontSize: 11 }}>Aircraft summary · <a href="?workspace=studio">open the editable cargo studio</a></div>
         </div>
       </div>
       {!build && (

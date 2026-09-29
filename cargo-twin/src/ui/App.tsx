@@ -171,7 +171,7 @@ export function App() {
           <RightPanel />
         </main>
         <footer className="footer">
-          <span>Cathay Cargo Twin v2 · originally a team hackathon prototype (Nov 2025) · rebuilt 2026 by Sethy Pagna UNG</span>
+          <span>Cargo Twin · aircraft workspace · originally a team hackathon prototype (Nov 2025) · rebuilt 2026 by Sethy Pagna UNG</span>
           <span>Portfolio prototype · not affiliated with any airline · representative data, not for operational use</span>
         </footer>
       </div>

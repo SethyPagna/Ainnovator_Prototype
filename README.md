@@ -1,4 +1,20 @@
-# Cathay Cargo Twin
+# Cargo Twin
+
+**A cargo load-planning studio for road, sea, air, rail and the space you actually have.** Enter box sizes, quantities, weights and handling rules, customize the usable load space, then compare calculated 3D layouts and replay their loading sequence.
+
+The current version is **v3** in [`cargo-twin/`](cargo-twin/). The general cargo studio opens by default. The **Aircraft workspace** retains the earlier ULD packing, rigid-body stress tests and freighter weight-and-balance tools.
+
+## Cargo studio
+
+- Start with a delivery van, box truck, sea container, air-freight space, rail wagon or custom rectangular space. Edit internal dimensions, payload, wall/ceiling clearance and a reserved rear section. The scene shows the excluded space; utilization uses the remaining usable volume.
+- Describe each cargo group with its dimensions, quantity, mass per piece, priority, fragility, upright requirement, stackability and maximum supported load. Mix sturdy cartons, heavy equipment, delicate goods and other box-shaped cargo in one scenario.
+- Compare **Max fill**, **Balanced** and **Gentle** deterministic packing heuristics. Placements respect dimensions, non-overlap, payload, orientation, full base support and cumulative load on supporting cargo. Fragile or non-stackable boxes receive no cargo on top.
+- Inspect packed/unplaced counts, usable cubic metres, occupied-space percentage, payload percentage and the mass-weighted centre of gravity. Unplaced cargo has a reason; empty space is not automatically safe or reachable packing space.
+- Orbit a cutaway 3D twin, select a box, switch to a top view and replay the placement sequence. Edit the scenario on desktop or phone, save it locally, or export/import its JSON.
+
+These are comparative planning heuristics, not a guarantee of a global optimum. Presets are illustrative editable dimensions, not certified vehicle specifications. The studio models rectangular cargo/spaces and static support; its loading replay is a visual sequence, not a collision-free door-path or vehicle-dynamics simulation. The separate Aircraft workspace includes the earlier physics stress-test prototype. Neither workspace is an operational load approval.
+
+## Aircraft workspace
 
 **An air-cargo load-planning digital twin that runs in the browser.** It turns a cargo manifest into
 built ULDs (containers and pallets, packed against their real contours), stress-tests each stack with
@@ -8,12 +24,12 @@ the CG envelope. Then it prints the loading instruction.
 > Portfolio prototype · **not affiliated with any airline** · no airline logos or liveries · all aircraft
 > and ULD figures are *representative and simplified* and must never be used for real operations.
 
-The current version is **v2** in [`cargo-twin/`](cargo-twin/). The original hackathon prototype is kept,
+The aircraft workspace comes from **v2**. The original hackathon prototype is kept,
 untouched, in [`AInnovator_ Cathay Cargo Twin Prototype/`](AInnovator_%20Cathay%20Cargo%20Twin%20Prototype/).
 
 ---
 
-## What v2 does
+### What the aircraft workspace does
 
 | Stage | What happens |
 |---|---|
@@ -28,7 +44,7 @@ The 3D views are three.js: a hangar scene with the ULD on a dolly (colour by han
 weight or temperature; x-ray; exploded view; build-sequence playback; click-to-inspect) and a
 translucent freighter with its decks, positions, loaded ULDs, CG rings and the MAC bar.
 
-**Try it:** press **“Try a sample flight”** (or <kbd>S</kbd>) — it loads a manifest, builds the ULDs,
+**Try it:** open **Aircraft workspace**, then press **“Try a sample flight”** (or <kbd>S</kbd>) — it loads a manifest, builds the ULDs,
 replays a build sequence, runs the stress test and auto-plans the aircraft in about 25 seconds.
 <kbd>?</kbd> lists every keyboard shortcut; <kbd>U</kbd> opens the equipment library (ULD cross-sections to
 scale and aircraft data).
@@ -46,8 +62,9 @@ npm run preview    # serves the build on http://localhost:8811
 
 The build uses relative asset paths (`base: './'`), bundles everything locally (fonts included; no
 CDN, no service worker, no runtime network requests) and works from any sub-path such as
-`/play/cargo-twin/` or inside an `<iframe>`; packing and physics run in Web Workers with a main-thread
-fallback for sandboxes that block module workers. Total size is about 1.3 MB (fonts included).
+`/play/cargo-twin/` or inside an `<iframe>`. Studio packing runs in a Web Worker and reports an error
+if the host blocks workers. The aircraft workspace retains its earlier worker fallback. The complete
+build is about 1.6 MB (fonts and both workspaces included).
 
 ## How it is built
 
@@ -69,6 +86,8 @@ cargo-twin/src
 └─ ui/                React control-room UI (manifest · 3D stage · KPIs / W&B)
 ```
 
+The general studio lives in `src/studio/`, with pure planning types/engine/presets separated from its React UI and three.js view. Its tests independently check placement bounds, pairwise overlap, support, loading constraints, invalid inputs and strategy behavior.
+
 Stack: Vite 8, TypeScript (strict), React 19, zustand, three.js, cannon-es, vitest.
 
 ### Honest simplifications
@@ -86,3 +105,5 @@ Originally a **team hackathon prototype (AInnovator, November 2025)** — a Figm
 Canvas-2D pseudo-3D view ([original site](https://ainnovator-cathay-cargotwin.figma.site)).
 **v2 rebuilt in 2026** by Sethy Pagna UNG as a from-scratch rewrite with a real packing engine,
 physics, weight & balance and a three.js twin.
+
+**v3 broadens Cargo Twin in 2026** into a customizable transport and packing studio while retaining the aircraft workspace and the original team's attribution. The historical prototype keeps its original name in the archive; the current project and repository are Cargo Twin / `SethyPagna/cargo-twin`.
