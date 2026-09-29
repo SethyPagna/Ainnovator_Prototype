@@ -220,7 +220,7 @@ export function StudioApp({ onOpenAircraft }: { onOpenAircraft?: () => void }) {
         <button onClick={() => fileInput.current?.click()} title="Import scenario JSON"><Icon name="upload" /><span>Import</span></button>
         <button onClick={exportScenario} title="Export scenario JSON"><Icon name="download" /><span>Export</span></button>
         <span className="ct-header-divider" />
-        {onOpenAircraft ? <button className="ct-aircraft-link" onClick={onOpenAircraft}><Icon name="air" /><span>Aircraft planner</span><span aria-hidden="true">↗</span></button> : <a className="ct-aircraft-link" href="?workspace=aircraft"><Icon name="air" /><span>Aircraft planner</span>↗</a>}
+        {onOpenAircraft ? <button className="ct-aircraft-link" aria-label="Aircraft planner" onClick={onOpenAircraft}><Icon name="air" /><span>Aircraft planner</span><span aria-hidden="true">↗</span></button> : <a className="ct-aircraft-link" aria-label="Aircraft planner" href="?workspace=aircraft"><Icon name="air" /><span>Aircraft planner</span>↗</a>}
       </nav>
       <input ref={fileInput} type="file" accept=".json,application/json" hidden onChange={importFile} />
     </header>
