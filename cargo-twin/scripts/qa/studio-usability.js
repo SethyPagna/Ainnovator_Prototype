@@ -1,0 +1,122 @@
+async (page) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const check = (value, message) => { if (!value) throw new Error(message); };
+  const ready = () => page.getByText('Plan ready', { exact: true }).waitFor();
+  const build = () => page.locator('.ct-pack-button').click();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.addInitScript(() => {
+    if (window.top !== window) return;
+    if (localStorage.getItem('cargo-twin-qa-clean-start')) {
+      Object.keys(localStorage).filter(key => key.startsWith('cargo-twin-')).forEach(key => localStorage.removeItem(key));
+    }
+  });
+  await page.evaluate(() => localStorage.setItem('cargo-twin-qa-clean-start', '1'));
+  await page.reload(); await ready();
+  check(await page.getByRole('heading', { name: 'Plan your load.' }).isVisible(), 'The starting task must be explicit.');
+  check(await page.getByRole('tab', { name: 'Load space', exact: true }).getAttribute('aria-selected') === 'true', 'First-time setup starts with space.');
+  const widthInput = page.getByRole('spinbutton', { name: 'Width cm', exact: true });
+  const originalWidth = await widthInput.inputValue();
+  await widthInput.fill('211');
+  await page.getByRole('button', { name: 'Road', exact: true }).click();
+  check(await widthInput.inputValue() === '211', 'Active mode must preserve customized dimensions.');
+  await widthInput.fill('');
+  check(await widthInput.inputValue() === '' && await widthInput.getAttribute('aria-invalid') === 'true', 'Blank numbers remain blank and explain the error.');
+  await build();
+  await page.getByText('Check inputs', { exact: true }).waitFor();
+  check(await widthInput.evaluate(element => document.activeElement === element), 'Build focuses invalid space input.');
+  await widthInput.fill(originalWidth); await build(); await ready();
+  const spaceTab = page.getByRole('tab', { name: 'Load space', exact: true });
+  await spaceTab.focus(); await page.keyboard.press('ArrowRight');
+  check(await page.getByRole('tab', { name: 'Cargo', exact: true }).evaluate(element => document.activeElement === element), 'Input tabs support arrow focus.');
+  await page.keyboard.press('Home');
+  check(await spaceTab.getAttribute('aria-selected') === 'true', 'Home selects the first input tab.');
+  await page.getByRole('button', { name: 'New project', exact: true }).click(); await ready();
+  await page.getByRole('button', { name: 'Next: add cargo', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Add cargo type' }).click();
+  const description = page.getByRole('textbox', { name: 'Description', exact: true });
+  await description.fill('Test crates');
+  const quantity = page.getByRole('spinbutton', { name: 'Quantity', exact: true });
+  await quantity.fill('3');
+  await page.getByRole('textbox', { name: 'Search cargo' }).fill('does-not-match');
+  check(await description.isVisible(), 'The expanded row remains visible under search.');
+  await page.getByRole('button', { name: 'Duplicate Test crates' }).click();
+  await page.getByRole('textbox', { name: 'Description', exact: true }).waitFor();
+  check(await page.getByRole('textbox', { name: 'Description', exact: true }).inputValue() === 'Test crates copy', 'Duplicate opens the new editor despite search.');
+  await page.getByRole('spinbutton', { name: 'Quantity', exact: true }).fill('');
+  await page.getByRole('button', { name: 'Close editor', exact: true }).click();
+  await build();
+  await page.getByRole('spinbutton', { name: 'Quantity', exact: true }).waitFor();
+  check(await page.getByRole('spinbutton', { name: 'Quantity', exact: true }).evaluate(element => document.activeElement === element), 'Build opens and focuses a collapsed invalid cargo field.');
+  await page.getByRole('spinbutton', { name: 'Quantity', exact: true }).fill('3');
+  await build(); await ready();
+  check(await page.locator('.ct-workflow button').nth(2).getAttribute('aria-current') === 'step', 'A successful build moves to review.');
+  check((await page.locator('.ct-fit-summary > strong').innerText()).includes('6'), 'The result leads with pieces fit.');
+  const detailsTab = page.getByRole('tab', { name: 'Load insights', exact: true });
+  await detailsTab.focus(); await page.keyboard.press('End');
+  check(await page.getByRole('tab', { name: 'Compare plans', exact: true }).getAttribute('aria-selected') === 'true', 'Detail tabs support End.');
+  await page.keyboard.press('ArrowLeft');
+  const inspect = page.getByRole('button', { name: 'Inspect piece 1', exact: true });
+  await inspect.click();
+  check(await page.locator('#ct-piece-details').evaluate(element => document.activeElement === element), 'Table inspection reveals and focuses details.');
+  await inspect.click();
+  check(await page.locator('#ct-piece-details').evaluate(element => document.activeElement === element), 'Repeated inspection of the same piece still navigates.');
+  await page.getByRole('button', { name: 'Edit this cargo type' }).click();
+  check(await page.getByRole('textbox', { name: 'Description', exact: true }).evaluate(element => document.activeElement === element), 'Direct cargo edit focuses the exact editor.');
+  await page.getByRole('button', { name: 'Edit this cargo type' }).click();
+  check(await page.getByRole('textbox', { name: 'Description', exact: true }).evaluate(element => document.activeElement === element), 'Repeated direct edit remains discoverable.');
+  await page.locator('.ct-display-settings summary').click();
+  await page.getByRole('checkbox', { name: 'Show cargo labels', exact: true }).uncheck();
+  check(!await page.getByRole('checkbox', { name: 'Show cargo labels', exact: true }).isChecked(), 'Labeled display choices change state.');
+  await page.getByRole('combobox', { name: 'Color cargo by' }).selectOption('weight');
+  check(await page.locator('.ct-scene-legend').isVisible(), 'Weight colors have a legend.');
+  await page.keyboard.press('Escape');
+  check(await page.locator('.ct-display-settings').getAttribute('open') === null, 'Escape closes display settings.');
+  await page.getByRole('textbox', { name: 'Project name' }).fill('Usability verified');
+  await page.getByRole('navigation', { name: 'Project tools' }).getByRole('button', { name: 'Save project', exact: true }).click();
+  await page.getByRole('button', { name: 'Projects', exact: true }).click();
+  check(await page.getByText('Working draft', { exact: true }).isVisible() && await page.getByText('Portable backup', { exact: true }).isVisible(), 'Library explains draft and backup.');
+  await page.getByRole('button', { name: 'Delete Usability verified', exact: true }).click();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  check(await page.getByRole('button', { name: 'Delete Usability verified', exact: true }).isVisible(), 'Cancel keeps the saved project.');
+  await page.getByRole('button', { name: 'Delete Usability verified', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirm delete Usability verified', exact: true }).click();
+  check(await page.getByText('No saved projects yet', { exact: true }).isVisible(), 'Explicit confirmation removes only the saved copy.');
+  await page.keyboard.press('Escape');
+  check(await page.getByRole('textbox', { name: 'Project name' }).inputValue() === 'Usability verified', 'Deleting a saved copy preserves the working draft.');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Map', exact: true }).click();
+  const first = page.getByRole('button', { name: /^Piece / }).first();
+  await first.focus(); await page.keyboard.press('Enter'); await page.keyboard.press('ArrowRight');
+  check(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')?.startsWith('Piece 2')), 'Map arrows keep focus on cargo controls.');
+  await page.keyboard.press('ArrowRight');
+  check(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')?.startsWith('Piece 3')), 'Repeated map arrows work on mobile.');
+  await page.getByRole('button', { name: '3D', exact: true }).click();
+  await page.locator('.ct-workflow button').nth(2).click();
+  await page.getByRole('spinbutton', { name: 'Quantity', exact: true }).fill('4');
+  check(await page.locator('.ct-mobile-next').getByRole('button', { name: 'Update plan', exact: true }).isVisible(), 'Mobile review offers Update after an edit.');
+  await page.getByRole('navigation', { name: 'Project tools' }).getByRole('button', { name: 'Export files' }).click();
+  check(await page.getByRole('button', { name: /Placement CSV/ }).isDisabled(), 'Stale calculated export is gated.');
+  await page.getByRole('dialog').getByRole('button', { name: 'Update plan', exact: true }).click(); await ready();
+  check(await page.getByRole('dialog').count() === 0, 'Updating from exports reveals the current plan.');
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Usability layout must fit ' + width + 'px.');
+    if (width < 681) {
+      const input = await page.locator('#ct-inputs').boundingBox();
+      const visual = await page.locator('#ct-visual').boundingBox();
+      check(input.y < visual.y, 'Mobile setup must come before the visualization.');
+      const toolbar = page.getByRole('navigation', { name: 'Project tools' });
+      for (const name of ['Projects', 'Import project JSON', 'Export files', 'Save project']) {
+        const button = toolbar.getByRole('button', { name, exact: true });
+        check((await button.innerText()).trim().length > 0 && (await button.boundingBox()).height >= 44, 'Mobile project action must be labeled and touchable: ' + name);
+      }
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 }); await page.evaluate(() => scrollTo(0, 0));
+  await page.screenshot({ path: 'output/playwright/studio-usability-mobile.png' });
+  await page.setViewportSize({ width: 1440, height: 1000 }); await page.evaluate(() => scrollTo(0, 0));
+  await page.screenshot({ path: 'output/playwright/studio-usability-desktop.png' });
+  check(errors.length === 0, 'Browser errors: ' + errors.join('; '));
+  return 'PASS: first-time space setup; blank-number validation/focus; active mode preservation; keyboard tabs; blank project; filtered add/duplicate; collapsed invalid repair; build-to-review; table/direct-edit repeated focus; labeled settings/legend/Escape; save/delete/cancel; mobile Map keyboard; stale review/export update; five viewport widths and labeled 44px mobile actions. Zero page errors.';
+}

@@ -1,0 +1,75 @@
+async (page) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const check = (value, message) => { if (!value) throw new Error(message); };
+  const ready = () => page.getByText('Plan ready', { exact: true }).waitFor();
+  const projectName = page.getByRole('textbox', { name: 'Project name' });
+  const studioUrl = new URL(page.url()); studioUrl.searchParams.delete('workspace');
+  await page.goto(studioUrl.href); await ready();
+  await projectName.fill('Immediate reload draft');
+  await page.reload(); await ready();
+  check(await projectName.inputValue() === 'Immediate reload draft', 'An immediate reload must flush the current draft.');
+  await projectName.fill('');
+  await page.getByRole('button', { name: 'Export files' }).click();
+  await page.getByRole('button', { name: /Project JSON/ }).click();
+  await page.getByRole('dialog').getByRole('status').filter({ hasText: 'Project name' }).waitFor();
+  await page.getByRole('dialog').getByRole('button', { name: 'Dismiss notification' }).click();
+  check(await page.getByRole('dialog').getByRole('status').count() === 0, 'A modal error must be dismissible inside the dialog.');
+  await page.getByRole('button', { name: 'Close dialog' }).click();
+  await projectName.fill('Regression draft');
+  await page.getByRole('button', { name: 'Load sheet', exact: true }).first().click();
+  await page.evaluate(() => { window.__qaOpen = window.open; window.open = () => null; });
+  await page.getByRole('button', { name: 'Print / save PDF' }).click();
+  await page.getByRole('dialog').getByRole('status').filter({ hasText: 'Allow the print window' }).waitFor();
+  await page.evaluate(() => { window.open = window.__qaOpen; delete window.__qaOpen; });
+  await page.getByRole('button', { name: 'Close dialog' }).click();
+  await page.evaluate(() => {
+    window.__qaFileText = File.prototype.text;
+    File.prototype.text = async function () {
+      const content = await window.__qaFileText.call(this);
+      window.__qaFileWaiting = true;
+      await new Promise(resolve => { window.__qaReleaseFile = resolve; });
+      return content;
+    };
+  });
+  await page.locator('input[type=file]').first().setInputFiles('output/playwright/qa-project.json');
+  await page.waitForFunction(() => window.__qaFileWaiting);
+  await projectName.fill('Keep my latest edit');
+  await page.evaluate(() => window.__qaReleaseFile());
+  await page.getByRole('status').filter({ hasText: 'Your draft changed while reading the file' }).waitFor();
+  check(await projectName.inputValue() === 'Keep my latest edit', 'A delayed import must not overwrite a newer edit.');
+  await page.evaluate(() => { File.prototype.text = window.__qaFileText; delete window.__qaFileText; delete window.__qaFileWaiting; delete window.__qaReleaseFile; });
+  const stress = await page.evaluate(() => {
+    const doc = JSON.parse(localStorage.getItem('cargo-twin-autosave-v2'));
+    doc.name = '400-piece verification';
+    doc.strategy = 'max-fill';
+    doc.space = { ...doc.space, widthCm: 250, heightCm: 300, lengthCm: 600, maxPayloadKg: 10000, reservedDepthCm: 0, clearanceCm: 0 };
+    doc.items = [{ ...doc.items[0], id: 'qa-four-hundred', name: 'Small cartons', lengthCm: 20, widthCm: 20, heightCm: 20, weightKg: 1, quantity: 400, fragile: false, keepUpright: false, stackable: true, maxTopLoadKg: 1000 }];
+    return JSON.stringify(doc);
+  });
+  const started = Date.now();
+  await page.locator('input[type=file]').first().setInputFiles({ name: 'qa-400.json', mimeType: 'application/json', buffer: Buffer.from(stress) });
+  await ready();
+  check((await page.locator('.ct-fit-summary > strong').innerText()).replace(/\s+/g, ' ').includes('400 / 400'), 'All 400 small cartons must pack.');
+  check(await page.locator('.ct-scene canvas').isVisible(), 'The 400-piece 3D scene must render.');
+  await page.getByRole('button', { name: 'Top', exact: true }).click();
+  await page.getByRole('button', { name: '3D', exact: true }).click();
+  await page.screenshot({ path: 'output/playwright/studio-400.png' });
+  const elapsed = Date.now() - started;
+  await page.getByRole('button', { name: 'Scenario gallery' }).click();
+  await page.getByRole('button', { name: /City delivery/ }).click(); await ready();
+  await page.getByRole('button', { name: 'Map', exact: true }).click();
+  check(await page.getByRole('combobox', { name: 'Color cargo by' }).count() === 0, 'Map must hide controls that only affect 3D.');
+  await page.getByRole('button', { name: '3D', exact: true }).click();
+  await page.getByRole('button', { name: 'Aircraft planner' }).click();
+  await page.getByRole('button', { name: 'Try a sample flight' }).first().waitFor();
+  await page.getByRole('button', { name: 'Try a sample flight' }).first().click();
+  await page.getByText(/Sample flight ready —/).waitFor({ timeout: 90000 });
+  check(await page.locator('canvas').count() > 0, 'Aircraft workspace must render its 3D stage.');
+  await page.screenshot({ path: 'output/playwright/aircraft-sample.png' });
+  await page.getByRole('link', { name: '← Cargo studio' }).click(); await ready();
+  check(await projectName.inputValue() === 'City delivery / load plan', 'Returning from aircraft must restore the studio draft.');
+  check(errors.length === 0, 'Browser page errors: ' + errors.join('; '));
+  return 'PASS: immediate-reload persistence; in-modal error/dismissal and blocked-print guidance; delayed-import guard; 400/400 pieces rendered (' + elapsed + ' ms including UI and screenshot); map control clarity; aircraft sample pipeline and studio return. Zero page errors.';
+}
+
