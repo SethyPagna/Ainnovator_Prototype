@@ -35,7 +35,7 @@ export function TopBar() {
         <Mark />
         <div>
           <h1>Cargo Twin</h1>
-          <small>AIRCRAFT WORKSPACE · v3</small>
+          <small>AIRCRAFT WORKSPACE · v4</small>
         </div>
       </div>
       <a className="btn ghost" href="?workspace=studio" style={{ textDecoration: 'none' }}>← Cargo studio</a>

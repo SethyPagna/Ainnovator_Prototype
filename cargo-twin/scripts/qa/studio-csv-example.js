@@ -1,0 +1,34 @@
+async (page) => {
+  const check = (value, message) => { if (!value) throw new Error(message); };
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const ready = () => page.getByText('Plan ready', { exact: true }).waitFor();
+  await page.getByRole('tab', { name: 'Cargo', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Search cargo', exact: true }).fill('previous-load-only');
+  await page.getByText('CSV format & example', { exact: true }).click();
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('link', { name: 'Download sample CSV', exact: true }).click();
+  const file = await downloadPromise;
+  check(file.suggestedFilename() === 'cargo-twin-example.csv', 'The CSV example must be downloadable.');
+  await file.saveAs('output/playwright/qa-example.csv');
+  await page.locator('input[type=file]').nth(1).setInputFiles('output/playwright/qa-example.csv'); await ready();
+  check(await page.getByRole('textbox', { name: 'Search cargo', exact: true }).inputValue() === '', 'Loading a manifest must clear the old cargo search.');
+  check((await page.locator('.ct-fit-summary > strong').innerText()).replace(/\s+/g, ' ').includes('8 / 8'), 'The provided sample must import and pack all eight pieces.');
+  await page.getByRole('tab', { name: 'Cargo', exact: true }).click();
+  check(await page.getByRole('button', { name: /^Glass crates/ }).isVisible(), 'Imported fragile cargo is editable.');
+  await page.getByRole('button', { name: /^Glass crates/ }).click();
+  check(await page.getByRole('checkbox', { name: 'Fragile', exact: true }).isChecked(), 'Sample handling flags must survive import.');
+  check(await page.getByRole('checkbox', { name: 'Keep upright', exact: true }).isChecked(), 'Sample orientation must survive import.');
+  await page.getByRole('textbox', { name: 'Search cargo', exact: true }).fill('previous-load-only');
+  await page.getByRole('button', { name: 'Scenario gallery' }).click();
+  await page.getByRole('button', { name: /City delivery/ }).click(); await ready();
+  check(await page.getByRole('textbox', { name: 'Search cargo', exact: true }).inputValue() === '', 'Loading a scenario clears old cargo filters.');
+  await page.getByRole('textbox', { name: 'Search cargo', exact: true }).fill('previous-load-only');
+  await page.getByRole('button', { name: 'Undo edit' }).click();
+  check(await page.getByRole('textbox', { name: 'Search cargo', exact: true }).inputValue() === '', 'History restore clears old cargo filters.');
+  check(await page.getByRole('button', { name: /^Glass crates/ }).isVisible(), 'History restores the imported manifest.');
+  await page.getByRole('button', { name: 'Redo edit' }).click();
+  await page.locator('.ct-pack-button').click(); await ready();
+  check(errors.length === 0, 'CSV example page errors: ' + errors.join('; '));
+  return 'PASS: in-app CSV example downloads, imports, packs 8/8 pieces, preserves fragile/upright flags, and restores the sample. Zero page errors.';
+}

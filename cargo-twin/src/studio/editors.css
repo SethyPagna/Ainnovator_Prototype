@@ -1,0 +1,84 @@
+.ct-editor.ct-cargo-panel,.ct-editor.ct-space-panel { padding:20px 16px; }
+.ct-editor .ct-panel-heading { align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.ct-editor .ct-panel-heading>div { min-width:0; flex:1 1 140px; }
+.ct-editor .ct-panel-heading h2 { font-size:17px; line-height:1.35; font-weight:650; color:#332d43; }
+.ct-editor .ct-panel-heading h2>span { font-size:12px; padding:3px 6px; color:#62586e; }
+.ct-editor .ct-panel-heading p { font-size:13px; line-height:1.55; color:#655d73; margin-top:6px; }
+.ct-editor .ct-editor-import { display:inline-flex; align-items:center; justify-content:center; min-height:44px; gap:7px; padding:9px 12px; border:1px solid #d4c9eb; border-radius:8px; background:#f6f2fd; color:#6347a4; font-size:13px; font-weight:600; }
+.ct-editor .ct-editor-csv { margin:0 0 14px; border:1px solid #ddd2ec; border-radius:8px; background:#faf7ff; }
+.ct-editor .ct-editor-csv summary { min-height:44px; padding:11px 12px; cursor:pointer; font-size:13px; line-height:1.5; font-weight:600; color:#654794; }
+.ct-editor .ct-editor-csv-content { padding:0 12px 12px; }
+.ct-editor .ct-editor-csv-content p { font-size:12px; line-height:1.65; color:#665873; margin:9px 0; }
+.ct-editor .ct-editor-csv-content code { font-size:12px; color:#564266; overflow-wrap:anywhere; }
+.ct-editor .ct-editor-csv-headers { display:block; border:1px solid #e2d9ec; border-radius:6px; padding:9px; background:#fff; line-height:1.7; }
+.ct-editor .ct-editor-csv-download { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:44px; padding:9px 12px; border:1px solid #cbb9e1; border-radius:7px; margin-top:7px; color:#65439a; font-size:13px; font-weight:600; text-decoration:none; background:#fff; }
+.ct-editor .ct-editor-csv summary:focus-visible,.ct-editor .ct-editor-csv-download:focus-visible { outline:3px solid #8063b8; outline-offset:3px; }
+.ct-editor .ct-search { min-height:44px; padding:9px 11px; border-color:#dcd4e8; color:#736680; }
+.ct-editor .ct-search input { font-size:14px; color:#41384f; }
+.ct-editor .ct-search input::placeholder { color:#756b80; }
+.ct-editor .ct-cargo-list { max-height:none; overflow:visible; }
+.ct-editor .ct-cargo-card { border-bottom:1px solid #e7e1ee; }
+.ct-editor .ct-cargo-card.expanded { border:1px solid #cfc0eb; background:#fcfaff; border-radius:9px; margin:10px 0; }
+.ct-editor.ct-cargo-panel .ct-cargo-summary { padding:14px 4px; min-height:88px; gap:10px; align-items:flex-start; }
+.ct-editor .ct-cargo-card.expanded .ct-cargo-summary { padding:14px 10px; }
+.ct-editor .ct-cargo-name strong { font-size:14px; color:#393146; line-height:1.45; }
+.ct-editor .ct-cargo-name>small { font-size:12px; line-height:1.45; color:#6c627a; }
+.ct-editor .ct-mini-tags { gap:4px; }
+.ct-editor .ct-mini-tags em { font-size:12px; line-height:1.5; color:#6c607d; }
+.ct-editor .ct-quantity { font-size:14px; color:#554763; padding-top:1px; }
+.ct-editor .ct-quantity small { display:flex; align-items:center; justify-content:flex-end; gap:3px; font-size:12px; color:#7151ac; font-weight:600; margin-top:9px; }
+.ct-editor .ct-cargo-editor { padding:4px 12px 14px; }
+.ct-editor .ct-editor-section { margin-top:20px; }
+.ct-editor .ct-editor-section h3 { font-size:14px; color:#41364f; font-weight:650; }
+.ct-editor .ct-editor-section p { font-size:12px; color:#71647f; line-height:1.5; margin-top:4px; }
+.ct-editor .ct-field { margin-top:14px; min-width:0; }
+.ct-editor .ct-field>span { font-size:13px; line-height:1.4; color:#544762; font-weight:600; margin-bottom:7px; }
+.ct-editor .ct-field>span small { font-size:12px; color:#70617f; }
+.ct-editor .ct-field input,.ct-editor .ct-field select { min-height:44px; height:44px; padding:9px 10px; border-color:#d6ccdf; border-radius:7px; font-size:14px; color:#362e40; background:#fff; }
+.ct-editor .ct-field input:disabled { background:#f0ecf5; color:#746a80; }
+.ct-editor .ct-field-invalid input { border-color:#b8584f; background:#fffafa; }
+.ct-editor .ct-editor-help,.ct-editor .ct-editor-error { display:block; font-size:12px; line-height:1.55; margin-top:6px; }
+.ct-editor .ct-editor-help { color:#70617d; }
+.ct-editor .ct-editor-error { color:#a03932; font-weight:600; }
+.ct-editor .ct-fields { gap:10px; }
+.ct-editor .ct-fields.three .ct-field>span { flex-wrap:wrap; gap:2px 5px; }
+.ct-editor .ct-editor-handling { border:0; padding:0; margin:22px 0 0; min-width:0; }
+.ct-editor .ct-editor-handling legend { font-size:14px; color:#41364f; font-weight:650; padding:0; }
+.ct-editor .ct-handling { gap:9px; padding-top:9px; }
+.ct-editor .ct-handling label { min-height:56px; padding:10px; gap:10px; align-items:flex-start; border:1px solid #e4ddea; border-radius:7px; background:#fff; font-size:13px; color:#4d405b; cursor:pointer; }
+.ct-editor .ct-handling label>span { flex:1; min-width:0; }
+.ct-editor .ct-handling strong { display:block; font-size:13px; font-weight:600; }
+.ct-editor .ct-handling small { display:block; font-size:12px; line-height:1.5; color:#71637e; margin:4px 0 0; }
+.ct-editor .ct-handling input { width:19px; height:19px; flex-shrink:0; margin-top:1px; }
+.ct-editor .ct-handling .ct-handling-disabled { background:#f4f0f7; cursor:default; }
+.ct-editor .ct-cargo-edit-footer { gap:8px; flex-wrap:wrap; margin-top:17px; }
+.ct-editor .ct-color-picker { width:100%; min-height:44px; margin:0; font-size:13px; color:#594a67; gap:10px; }
+.ct-editor .ct-color-picker input { width:40px; height:36px; border-radius:5px; }
+.ct-editor .ct-editor-action,.ct-editor .ct-editor-close { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px; border:1px solid #dcd2e8; border-radius:7px; gap:6px; font-size:13px; color:#675279; background:#fff; }
+.ct-editor .ct-editor-action { flex:1; }
+.ct-editor .ct-editor-action.danger { color:#a3423b; }
+.ct-editor .ct-editor-close { width:100%; background:#f0eaf9; color:#6845a5; font-weight:600; }
+.ct-editor .ct-add-cargo { min-height:44px; font-size:14px; margin-top:16px; }
+.ct-editor .ct-manifest-total { font-size:14px; color:#4a3c59; flex-wrap:wrap; gap:7px; }
+.ct-editor.ct-cargo-panel .ct-small-note,.ct-editor.ct-space-panel .ct-small-note,.ct-editor .ct-empty { font-size:12px; line-height:1.6; color:#71647e; }
+.ct-editor .ct-modes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:8px; }
+.ct-editor .ct-modes button { min-height:66px; padding:10px 6px; font-size:13px; color:#645271; border-color:#dcd2e7; border-radius:8px; gap:6px; align-items:center; justify-content:center; }
+.ct-editor .ct-modes button.active { color:#6742aa; background:#f1eafb; border-color:#b79adb; box-shadow:inset 0 0 0 1px #b79adb; }
+.ct-editor .ct-space-diagram { padding:14px 12px; margin-top:20px; gap:12px; }
+.ct-editor .ct-space-diagram>div { min-width:0; }
+.ct-editor .ct-space-diagram strong { font-size:14px; color:#58436e; line-height:1.5; overflow-wrap:anywhere; }
+.ct-editor .ct-space-diagram small { font-size:12px; color:#796889; letter-spacing:0; line-height:1.5; }
+.ct-editor .ct-editor-usable { border:1px solid #cbdcd3; border-radius:8px; background:#f2f8f4; padding:14px; margin-top:20px; }
+.ct-editor .ct-editor-usable>span { display:flex; align-items:center; gap:7px; color:#426555; font-size:13px; font-weight:600; }
+.ct-editor .ct-editor-usable strong { display:block; font-size:15px; color:#325747; margin-top:8px; line-height:1.5; overflow-wrap:anywhere; }
+.ct-editor .ct-editor-usable p { font-size:12px; color:#537061; line-height:1.6; margin-top:6px; }
+.ct-editor .ct-editor-usable-invalid { background:#fff7f2; border-color:#e1b7a5; }
+.ct-editor .ct-editor-usable-invalid p { color:#974f37; }
+.ct-editor button:focus-visible,.ct-editor input:focus-visible,.ct-editor select:focus-visible { outline:3px solid #8063b8; outline-offset:3px; }
+@media(max-width:680px) {
+  .ct-editor.ct-cargo-panel,.ct-editor.ct-space-panel { padding:20px 16px; }
+  .ct-editor .ct-field input,.ct-editor .ct-field select,.ct-editor .ct-search input { font-size:16px; }
+  .ct-editor .ct-cargo-name strong { font-size:15px; }
+  .ct-editor .ct-cargo-swatch { width:36px; height:40px; }
+  .ct-editor .ct-editor-action,.ct-editor .ct-editor-close,.ct-editor .ct-editor-import,.ct-editor .ct-add-cargo { min-height:44px; }
+}
