@@ -89,7 +89,10 @@ export function parseCargoCsv(csv: string): CargoItem[] {
     if (row.cells.length !== headers.length) throw new Error(`CSV row ${row.line}: expected ${headers.length} fields, received ${row.cells.length}. Quote names containing commas.`);
     const values = Object.fromEntries(headers.map((header, column) => [header, row.cells[column]]));
     const label = `CSV row ${row.line}`;
-    const id = values.id?.trim() || `cargo-${index + 1}`;
+    const importedId = values.id?.trim() || `cargo-${index + 1}`;
+    // Valid IDs cannot contain apostrophes; undo only the export's hyphen-ID prefix.
+    // Cargo names retain spreadsheet protection because their apostrophes are ambiguous.
+    const id = importedId.startsWith("'-") ? importedId.slice(1) : importedId;
     if (ids.has(id)) throw new Error(`${label}: duplicate ID “${id}”. Each cargo row needs a unique ID.`);
     ids.add(id);
     const item = {

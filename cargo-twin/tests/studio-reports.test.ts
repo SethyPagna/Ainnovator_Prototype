@@ -66,6 +66,30 @@ describe('cargo CSV interchange', () => {
     const plan = packCargo(space, [cargo({ name: '@SUM(1+1)' })]);
     expect(exportPlanCsv(plan)).toContain("'@SUM(1+1)");
   });
+
+  it.each(['-', '-crate', '-001', `-${'a'.repeat(63)}`])('round-trips spreadsheet-protected valid ID %s', id => {
+    const items = [cargo({ id })];
+    const exported = exportCargoCsv(items);
+    expect(exported.split('\r\n')[1]).toMatch(/^'-/);
+    expect(parseCargoCsv(exported)).toEqual(items);
+  });
+
+  it('detects duplicates after restoring spreadsheet-protected IDs', () => {
+    expect(() => parseCargoCsv(`id,${headers}\n-crate,First,1,1,1,1,1\n'-crate,Second,1,1,1,1,1`)).toThrow(/duplicate ID/);
+  });
+
+  it.each(["'box", "''-crate", "'-bad.id", `'-${'a'.repeat(64)}`, "'=SUM", "'+crate", "'@crate"])(
+    'does not accept invalid IDs through spreadsheet restoration: %s', id => {
+      expect(() => parseCargoCsv(`id,${headers}\n${id},Box,1,1,1,1,1`)).toThrow(/ID needs/);
+    },
+  );
+
+  it('restores a protected ID without stripping protection from cargo names', () => {
+    const items = [cargo({ id: '-crate', name: '-formula-like name' })];
+    const exported = exportCargoCsv(items);
+    expect(exported).toContain("'-crate,'-formula-like name,");
+    expect(parseCargoCsv(exported)[0]).toMatchObject({ id: '-crate', name: "'-formula-like name" });
+  });
 });
 
 describe('load plan export and printable report', () => {
